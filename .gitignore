@@ -1,0 +1,10 @@
+# Pebble build output
+watchapp/build/
+
+# Node
+node_modules/
+
+# Editor/OS noise
+.DS_Store
+*.swp
+.lock-waf*

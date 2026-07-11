@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Index Notes — Settings</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    margin: 0; padding: 16px; max-width: 480px;
+    background: #f4f4f4; color: #111;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #111; color: #eee; }
+    input, select { background: #222; color: #eee; border-color: #444; }
+    .card { background: #1b1b1b; }
+  }
+  h1 { font-size: 1.3em; }
+  .card {
+    background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.15);
+  }
+  label { display: block; font-size: .85em; font-weight: 600; margin: 10px 0 4px; }
+  input, select {
+    width: 100%; box-sizing: border-box; padding: 9px; font-size: 1em;
+    border: 1px solid #ccc; border-radius: 6px;
+  }
+  .hint { font-size: .78em; opacity: .7; margin-top: 3px; }
+  button {
+    width: 100%; padding: 13px; font-size: 1.05em; font-weight: 700;
+    color: #fff; background: #ff4700; border: 0; border-radius: 8px; margin-top: 6px;
+  }
+  details summary { cursor: pointer; font-weight: 600; margin-bottom: 6px; }
+  .mode { display: none; }
+  .mode.active { display: block; }
+</style>
+</head>
+<body>
+<h1>⌚ Index Notes</h1>
+<p class="hint">Voice notes dictated on your Pebble are written to your own
+account's recordings collection, where the Pebble mobile app picks them up
+into the Index feed. Your credentials are stored only on your phone.</p>
+
+<div class="card">
+  <label for="apiKey">Firebase Web API key</label>
+  <input id="apiKey" placeholder="AIza...">
+  <div class="hint">The public client key of the Pebble app's Firebase project
+  (see the project README for how to find it).</div>
+
+  <label for="projectId">Firebase project ID</label>
+  <input id="projectId" placeholder="e.g. coredevices-xxxxx">
+
+  <label for="noteTitle">Note title in the Index feed</label>
+  <input id="noteTitle" placeholder="Pebble watch note">
+</div>
+
+<div class="card">
+  <label for="authMode">Sign-in method</label>
+  <select id="authMode">
+    <option value="refresh_token">Paste refresh token</option>
+    <option value="password">Email &amp; password</option>
+  </select>
+
+  <div id="mode-refresh_token" class="mode">
+    <label for="refreshToken">Refresh token</label>
+    <input id="refreshToken" placeholder="AMf-...">
+    <div class="hint">A Firebase refresh token for your account. The README
+    documents ways to obtain one.</div>
+  </div>
+
+  <div id="mode-password" class="mode">
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username">
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password">
+    <div class="hint">Only works if the project has email/password sign-in
+    enabled. After the first successful sign-in the companion stores a
+    refresh token and forgets the password.</div>
+  </div>
+</div>
+
+<div class="card">
+  <details>
+    <summary>Advanced: endpoint overrides</summary>
+    <div class="hint">Point these at the local ingestion simulator for
+    development (e.g. http://192.168.1.10:8688). Leave as-is for the real
+    services.</div>
+    <label for="authHost">Secure token host</label>
+    <input id="authHost">
+    <label for="identityHost">Identity toolkit host</label>
+    <input id="identityHost">
+    <label for="firestoreHost">Firestore host</label>
+    <input id="firestoreHost">
+  </details>
+</div>
+
+<button id="save">Save</button>
+
+<script>
+(function () {
+  var fields = ['apiKey', 'projectId', 'noteTitle', 'authMode', 'refreshToken',
+                'email', 'password', 'authHost', 'identityHost', 'firestoreHost'];
+
+  function showMode() {
+    var mode = document.getElementById('authMode').value;
+    document.querySelectorAll('.mode').forEach(function (el) {
+      el.classList.toggle('active', el.id === 'mode-' + mode);
+    });
+  }
+  document.getElementById('authMode').addEventListener('change', showMode);
+
+  // Prefill from the settings the companion passed in the URL fragment.
+  try {
+    var current = JSON.parse(decodeURIComponent(location.hash.slice(1)));
+    fields.forEach(function (f) {
+      if (current[f] !== undefined && document.getElementById(f)) {
+        document.getElementById(f).value = current[f];
+      }
+    });
+  } catch (e) { /* fresh install — leave defaults */ }
+  showMode();
+
+  document.getElementById('save').addEventListener('click', function () {
+    var out = {};
+    fields.forEach(function (f) {
+      var el = document.getElementById(f);
+      if (el && el.value !== '') { out[f] = el.value.trim(); }
+    });
+    document.location = 'pebblejs://close#' +
+      encodeURIComponent(JSON.stringify(out));
+  });
+})();
+</script>
+</body>
+</html>

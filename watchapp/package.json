@@ -1,0 +1,38 @@
+{
+  "name": "index-notes",
+  "author": "andreasthinks",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "Index Notes",
+    "uuid": "bbf0c1a9-e31f-499b-9ddd-52ffa8726b3f",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "basalt",
+      "chalk",
+      "diorite",
+      "emery"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "capabilities": [
+      "configurable"
+    ],
+    "messageKeys": [
+      "NOTE_TEXT",
+      "NOTE_EPOCH",
+      "RESULT_CODE",
+      "RESULT_TEXT",
+      "QUEUE_SIZE"
+    ],
+    "resources": {
+      "media": []
+    }
+  }
+}

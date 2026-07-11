@@ -1,0 +1,10 @@
+{
+  "name": "pebble-index-simulator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Index Notes: a Pebble watchapp that submits dictated voice notes into the Pebble mobile app's Index feed, plus a local ingestion simulator and end-to-end tests.",
+  "scripts": {
+    "test": "node test/run-tests.js",
+    "simulator": "node simulator/server.js"
+  }
+}

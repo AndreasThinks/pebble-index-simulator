@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Companion end-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node test/run-tests.js
+
+  build-pbw:
+    name: Build watchapp (.pbw)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pebble-tool and SDK
+        run: |
+          pipx install pebble-tool
+          pebble sdk install latest
+      - name: Build
+        working-directory: watchapp
+        run: pebble build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: index-notes-pbw
+          path: watchapp/build/watchapp.pbw
