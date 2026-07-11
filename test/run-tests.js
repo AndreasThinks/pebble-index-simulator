@@ -254,6 +254,25 @@ async function main() {
     assert.strictEqual(saved.refreshToken, 'sim-refresh-bob');
   });
 
+  await test('proposed native Pebble.addIndexNote API is preferred, needs no config', async () => {
+    const ls = makeLocalStorage(); // deliberately unconfigured
+    const pebble = loadCompanion(ls);
+    const nativeNotes = [];
+    // Simulate a Pebble app build that ships the upstream-proposal API.
+    pebble.addIndexNote = (text, ok) => {
+      nativeNotes.push(text);
+      setImmediate(ok);
+    };
+    pebble.emit('appmessage', { payload: { NOTE_TEXT: 'native path note', NOTE_EPOCH: 1750000005 } });
+
+    await waitFor(() => pebble.sent.some((m) => m.RESULT_CODE === 0), 'native upload result');
+    assert.deepStrictEqual(nativeNotes, ['native path note']);
+    assert.strictEqual(JSON.parse(ls.getItem('noteQueue')).length, 0);
+    // Nothing should have been written to Firestore for this note.
+    const recs = await getJson(port, '/recordings');
+    assert.ok(!recs.some((r) => r.document.entries[0].transcription === 'native path note'));
+  });
+
   sim.close();
   console.log(`\nAll ${passed} tests passed.`);
 }

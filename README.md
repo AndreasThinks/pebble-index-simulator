@@ -104,9 +104,15 @@ REST APIs every Firebase client uses.
 - **If you use end-to-end encryption** for Index data, notes written by
   this companion are stored *unencrypted* in your collection (the app
   ingests cleartext docs fine, but be aware of the difference).
-- The right long-term fix is an official ingestion API. If this matters to
-  you, ask for one: the mobile app is developed in the open at
-  [coredevices/mobileapp](https://github.com/coredevices/mobileapp).
+- The right long-term fix is an official ingestion API. This repo includes
+  a ready-to-submit design for one —
+  [`docs/upstream-proposal.md`](docs/upstream-proposal.md) proposes a
+  `Pebble.addIndexNote()` PKJS method for
+  [coredevices/mobileapp](https://github.com/coredevices/mobileapp)
+  (modelled on the existing `Pebble.insertTimelinePin` app-service hook),
+  and this companion already **feature-detects that API and prefers it**:
+  if the Pebble app ever ships it, existing installs silently upgrade to
+  the credential-free path and Firebase settings become unnecessary.
 
 ### Alternative: fully self-hosted
 

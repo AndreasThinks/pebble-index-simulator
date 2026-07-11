@@ -22,6 +22,28 @@ var queue = require('./queue');
 
 var CONFIG_PAGE_URL = 'https://andreasthinks.github.io/pebble-index-simulator/';
 
+/*
+ * If the Pebble mobile app ever ships the proposed official ingestion API
+ * (see docs/upstream-proposal.md), use it: zero configuration, and notes
+ * get full agent processing. Otherwise fall back to writing the sync
+ * collection directly via Firebase.
+ */
+function nativeIndexAvailable() {
+  return typeof Pebble.addIndexNote === 'function';
+}
+
+function submitViaNativeApi(note, cb) {
+  try {
+    Pebble.addIndexNote(note.text, function () {
+      cb(null);
+    }, function (err) {
+      cb(new Error(err ? String(err) : 'addIndexNote failed'));
+    });
+  } catch (e) {
+    cb(e);
+  }
+}
+
 function sendResult(code, text, queueSize) {
   Pebble.sendAppMessage({
     RESULT_CODE: code,
@@ -37,7 +59,8 @@ function shortError(err) {
 
 function flushAndReport(reportEvenIfIdle) {
   var settings = settingsStore.load();
-  if (!settingsStore.isConfigured(settings)) {
+  var useNative = nativeIndexAvailable();
+  if (!useNative && !settingsStore.isConfigured(settings)) {
     if (queue.size() > 0 || reportEvenIfIdle) {
       sendResult(2, 'not configured', queue.size());
     }
@@ -47,7 +70,11 @@ function flushAndReport(reportEvenIfIdle) {
     return;
   }
   queue.flush(function (note, cb) {
-    firebase.uploadRecording(settings, note, cb);
+    if (useNative) {
+      submitViaNativeApi(note, cb);
+    } else {
+      firebase.uploadRecording(settings, note, cb);
+    }
   }, function (err, remaining) {
     if (err) {
       // Network-ish failures mean "queued, will retry"; anything else is
